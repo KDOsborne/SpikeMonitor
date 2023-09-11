@@ -1,0 +1,2 @@
+SpikeMonitor depends on: BASS and GLAD.
+The DLLs and header files of these should be placed on the path or in the "libs" folder and "include" folder respectively.
