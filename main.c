@@ -211,6 +211,7 @@ int main(int argc, char *argv[]) {
 			glUniform1f(shape_->vscale_loc,scale);
 			glUniform1f(shape_->zoom_loc,zoom);
 			glUniform2f(shape_->trans_loc,xt,yt);
+			glUniform2f(shape_->scale_loc,1/8.f,1/8.f);
 			
 			glBindVertexArray(shape_->vertVAO);
 			glBindBuffer(GL_ARRAY_BUFFER, shape_->vertVBO);
@@ -424,9 +425,9 @@ static void click_(int button) {
 				dragging = half;
 			} else {
 				if(mx >= 0 && my >= 0 && row >= 0 && row <= 7 && column >= 0 && column <= 7) {
-					if(line_[row+column*8-1].enabled) {
+					if(line_[row+column*8].enabled) {
 						if(zoom < 1) {
-							if(elapsed/1000-dclick < 1/3.f && (TARGET_CHANNEL == row+column*8-1)) {
+							if(elapsed/1000-dclick < 1/3.f && (TARGET_CHANNEL == row+column*8)) {
 								zoom = 4.5;
 								xt = (4.f-row)/4.f*zoom-1/8.f*zoom;
 								yt = ((float)column-4.f)/4.f*zoom+1/8.f*zoom;
@@ -434,7 +435,7 @@ static void click_(int button) {
 							else
 								dclick = elapsed/1000;
 						}
-						TARGET_CHANNEL = row+column*8-1;
+						TARGET_CHANNEL = row+column*8;
 					}
 				}
 				else {
@@ -452,9 +453,9 @@ static void click_(int button) {
 				break;
 			} else {
 				if(mx >= 0 && my >= 0 && row >= 0 && row <= 7 && column >= 0 && column <= 7) {
-					if(line_[row+column*8-1].enabled) {
-						line_[row+column*8-1].enabled = 0;
-						if(row+column*8-1 == TARGET_CHANNEL)
+					if(line_[row+column*8].enabled) {
+						line_[row+column*8].enabled = 0;
+						if(row+column*8 == TARGET_CHANNEL)
 							TARGET_CHANNEL = -1;
 					}
 					else
