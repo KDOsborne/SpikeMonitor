@@ -78,7 +78,7 @@ int read_data(double time, float scale, HSTREAM stream, char *text) {
 		return -1;
 	}
 	
-	sprintf(text,"TIME: %.3f",(double)filepos.QuadPart/SRATE/STRIDE/4);
+	sprintf(text,"TIME: %.3f",(double)filepos.QuadPart/SRATE/STRIDE);
 	
 	DWORD bytesRead;
 	while(FILE_SIZE.QuadPart-filepos.QuadPart > 0) {
