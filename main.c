@@ -115,6 +115,7 @@ static int process_messages() {
 
 int main(int argc, char *argv[]) {
 	if (!init_neural()) {
+		getchar();
 		return 1;
 	}
 
@@ -288,7 +289,7 @@ int main(int argc, char *argv[]) {
 				float x = (float)(i%8)/8.f*2.f-1.f;
 				float y = (1.f-((int)(i/8)/8.f))*2.f-1.01f;
 				char buf[8];
-				sprintf(buf,"%c%d",'A'+PROBE,i+1);
+				sprintf(buf,"%c%d",'A'+PROBE,probes[PROBE].sites[i]);
 				
 				if(!line_[i].enabled) {
 					glUniform4f(text_->colu_loc,0.5f,0.5f,0.5f,1.f);
