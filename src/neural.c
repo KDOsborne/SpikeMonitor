@@ -37,13 +37,40 @@ int init_neural() {
 	
 	parse_json();
 	
-	if (SRATE == 0)
+	if (SRATE == 0 || STRIDE == 0)
 		return 0;
+	
+	/*
+	for(int i = 0; i < NUM_PORTS; i++) {
+		printf("%c:\n",'A'+i);
+		for(int j = 0; j < probes[i].nchans; j++) {
+			printf("%d,%d,%f\n",probes[i].order[j],probes[i].sites[j],probes[i].depth[j]);
+		}
+	}
+	*/
 	
 	for(int i = 0; i < NUM_PORTS; i++) {
 		for(int j = 0; j < probes[i].nchans; j++) {
 			init_bandpass(SRATE,SRATE/10.f,SRATE/100.f,&probes[i].lines[j].bp);
 			probes[i].lines[j].enabled = 1;
+			
+			//Sort by Depth Order
+			for (int k = j+1; k < probes[i].nchans; k++) {
+				if (probes[i].depth[k] < probes[i].depth[j]) {
+					float depth = probes[i].depth[j];
+					int site = probes[i].sites[j];
+					int order = probes[i].order[j];
+					
+					probes[i].depth[j] = probes[i].depth[k];
+					probes[i].depth[k] = depth;
+					
+					probes[i].sites[j] = probes[i].sites[k];
+					probes[i].sites[k] = site;
+					
+					probes[i].order[j] = probes[i].order[k];
+					probes[i].order[k] = order;
+				}
+			}
 		}
 	}
 	
@@ -86,7 +113,7 @@ int read_data(double time, float scale, HSTREAM stream, char *text) {
 			if(bytesRead != STRIDE*sizeof(float))
 				return 0;
 			for(int i = 0; i < probes[PROBE].nchans; i++)
-				line_[i].data[DCOUNT] = databuffer[i+probes[PROBE].offset];
+				line_[i].data[DCOUNT] = databuffer[probes[PROBE].order[i]+probes[PROBE].offset];
 			filepos.QuadPart += bytesRead;
 			DCOUNT++;
 		}
@@ -235,8 +262,10 @@ static void parse_json() {
 	
 	//Locate sample rate information
 	index = strstr(filetext,"\"samp_freq\":");
-	if (index == NULL)
+	if (index == NULL) {
+		printf("CANT FIND SAMPLE RATE\n");
 		goto cleanup;
+	}
 	
 	i1 = strstr(index,":");
 	i2 = strstr(index,",");
@@ -256,8 +285,10 @@ static void parse_json() {
 	
 	//Locate channel information
 	index = strstr(filetext,"\"signals\":");
-	if (index == NULL)
+	if (index == NULL) {
+		printf("CANT FIND CHANNEL INFO\n");
 		goto cleanup;
+	}
 	
 	i1 = strstr(index,"{");
 	i2 = strstr(index,"}");
@@ -294,8 +325,10 @@ static void parse_json() {
 	
 	//Locate port information
 	index = strstr(filetext,"\"port\":");
-	if (index == NULL)
+	if (index == NULL) {
+		printf("CANT FIND PORT INFO\n");
 		goto cleanup;
+	}
 	
 	i1 = strstr(index,"[");
 	i2 = strstr(index,"]");
@@ -323,8 +356,10 @@ static void parse_json() {
 	
 	//Locate site information
 	index = strstr(filetext,"\"site_num\":");
-	if (index == NULL)
+	if (index == NULL) {
+		printf("CANT FIND SITE INFO\n");
 		goto cleanup;
+	}
 	
 	i1 = strstr(index,"[");
 	i2 = strstr(index,"]");
@@ -352,6 +387,8 @@ static void parse_json() {
 				probes[i].lines[j].tracedata = (float*)malloc(sizeof(float)*TRACESIZE);
 				memset(probes[i].lines[j].tracedata,0,sizeof(float)*TRACESIZE);
 				
+				probes[i].order[j] = j;
+				
 				for (int k = 0; k < MAX_SPIKES; k++) {
 					probes[i].lines[j].spikes[k].data = (float*)malloc(sizeof(float)*SPIKE_WIDTH);
 					memset(probes[i].lines[j].spikes[k].data,0,sizeof(float)*SPIKE_WIDTH);
@@ -376,8 +413,10 @@ static void parse_json() {
 	
 	//Locate depth information
 	index = strstr(filetext,"\"site_ctr_tcs_y\":");
-	if (index == NULL)
+	if (index == NULL) {
+		printf("CANT FIND DEPTH INFO\n");
 		goto cleanup;
+	}
 	
 	i1 = strstr(index,"[");
 	i2 = strstr(index,"]");
